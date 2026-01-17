@@ -1,49 +1,33 @@
 import { getAuth } from "firebase/auth";
 
-const API_ENDPOINTS = {
-  getCampaigns:
-    "https://getcampaigns-cdxokhhbua-uc.a.run.app",
-  createCampaign:
-    "https://createcampaign-cdxokhhbua-uc.a.run.app",
-} as const;
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ??
+  "https://us-central1-iivvo-global.cloudfunctions.net";
 
-export type ApiEndpoint = keyof typeof API_ENDPOINTS;
-
-export async function fetchWithAuth(
-  endpoint: ApiEndpoint,
+export async function fetchWithAuth<T = any>(
+  path: string,
   options: RequestInit = {}
-) {
-  const auth = getAuth();
-
-  // ⏳ Esperar a que Auth esté listo
-  if (!auth.currentUser) {
-    await new Promise<void>((resolve) => {
-      const unsub = auth.onAuthStateChanged(() => {
-        unsub();
-        resolve();
-      });
-    });
-  }
-
-  const user = auth.currentUser;
+): Promise<T> {
+  const user = getAuth().currentUser;
   if (!user) {
-    throw new Error("Usuario no autenticado");
+    throw new Error("User not authenticated");
   }
 
   const token = await user.getIdToken();
-  const url = API_ENDPOINTS[endpoint];
 
-  return fetch(url, {
+  const res = await fetch(`${API_BASE}/${path}`, {
     ...options,
     headers: {
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
-  }).then(async (res) => {
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text || "Error en API");
+      ...(options.headers || {})
     }
-    return res.json();
   });
+
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
+
+  return res.json();
 }
+

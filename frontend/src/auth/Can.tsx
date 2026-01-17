@@ -1,18 +1,21 @@
-import React from "react";
+
+import type { ReactNode } from "react";
 import { useClaims } from "./useClaims";
-import type { Role } from "./useClaims";
 
-interface CanProps {
+type Role = "admin" | "operador" | "lectura";
+
+type Props = {
   allow: Role[];
-  children: React.ReactNode;
-}
+  children: ReactNode;
+};
 
-export function Can({ allow, children }: CanProps) {
-  const { loading, role } = useClaims();
+export default function Can({ allow, children }: Props) {
+  const { role } = useClaims();
 
-  if (loading) return null;
-  if (!role) return null;
-  if (!allow.includes(role)) return null;
+  if (!role || !allow.includes(role)) {
+    return null;
+  }
 
   return <>{children}</>;
 }
+

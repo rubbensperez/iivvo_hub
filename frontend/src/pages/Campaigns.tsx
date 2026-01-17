@@ -1,4 +1,4 @@
-import { Can } from "../auth/Can";
+import Can from "../auth/Can";
 
 export default function Campaigns() {
   return (
@@ -10,8 +10,11 @@ export default function Campaigns() {
       </Can>
 
       <Can allow={["admin"]}>
-        <button style={{ marginLeft: 8 }}>Eliminar campaña</button>
+        <button style={{ marginLeft: 8 }}>
+          Eliminar campaña
+        </button>
       </Can>
     </div>
   );
 }
+

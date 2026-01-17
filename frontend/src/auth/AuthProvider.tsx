@@ -1,14 +1,16 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+
+import { createContext, useEffect, useState } from "react";
+import type { User } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
 };
 
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: true,
+  loading: true
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -17,17 +19,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const auth = getAuth();
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+    return onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
     });
-
-    return () => unsub();
   }, []);
-
-  if (loading) {
-    return <div>Cargando sesión…</div>;
-  }
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
@@ -36,6 +32,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
-}

@@ -1,52 +1,38 @@
-
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
-import Dashboard from "../pages/Dashboard";
-import CampaignsList from "../pages/CampaignsList";
-import Results from "../pages/Results";
+import CampaignsList from "../modules/campaigns/pages/CampaignsList";
+import { useAuth } from "../auth/AuthProvider";
 
-import RoleRoute from "./RoleRoute";
-import { AuthProvider } from "../auth/AuthProvider";
+/* 👇 AQUÍ VA */
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
 
-export default function AppRouter() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+  if (loading) return <p>Cargando…</p>;
+  if (!user) return <Navigate to="/login" replace />;
 
-          <Route
-            path="/dashboard"
-            element={
-              <RoleRoute allow={["admin", "operador", "lectura"]}>
-                <Dashboard />
-              </RoleRoute>
-            }
-          />
-
-          <Route
-            path="/campaigns"
-            element={
-              <RoleRoute allow={["admin", "operador"]}>
-                <CampaignsList />
-              </RoleRoute>
-            }
-          />
-
-          <Route
-            path="/results"
-            element={
-              <RoleRoute allow={["admin"]}>
-                <Results />
-              </RoleRoute>
-            }
-          />
-
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
-  );
+  return <>{children}</>;
 }
 
+/* 👇 ROUTER */
+export default function AppRouter() {
+  return (
+    <Routes>
+      {/* PUBLIC */}
+      <Route path="/login" element={<Login />} />
+
+      {/* PRIVATE */}
+      <Route
+        path="/campaigns"
+        element={
+          <PrivateRoute>
+            <CampaignsList />
+          </PrivateRoute>
+        }
+      />
+
+      {/* DEFAULT */}
+      <Route path="*" element={<Navigate to="/campaigns" replace />} />
+    </Routes>
+  );
+}

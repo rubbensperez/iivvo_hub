@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "source": "backend/functions"
+  },
   "hosting": {
     "target": "hub-iivvo",
     "public": "frontend/dist",
@@ -15,4 +18,3 @@
     ]
   }
 }
-

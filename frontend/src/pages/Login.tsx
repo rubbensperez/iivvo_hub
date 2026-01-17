@@ -2,53 +2,64 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthProvider";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    setError("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  // 🔑 SI YA HAY SESIÓN → REDIRIGE
+  if (!loading && user) {
+    navigate("/campaigns", { replace: true });
+    return null;
+  }
+
+  // ⏳ Mientras Firebase resuelve sesión
+  if (loading) {
+    return <p>Cargando sesión…</p>;
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Redirige después de login exitoso
-      navigate("/dashboard");
-    } catch {
-      // ❌ Sin err, sin any → lint OK
-      setError("Credenciales incorrectas");
+      navigate("/campaigns");
+    } catch (err: any) {
+      setError("Credenciales inválidas");
     }
   };
 
   return (
-    <div style={{ padding: 40 }}>
-      <h1>🔐 Login Hub iiVVO</h1>
+    <div style={{ padding: 40, maxWidth: 400 }}>
+      <h1>Login iiVVO Hub</h1>
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          style={{ display: "block", marginBottom: 12, width: "100%" }}
+        />
 
-      <br />
-      <br />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ display: "block", marginBottom: 12, width: "100%" }}
+        />
 
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        <button type="submit">Entrar</button>
 
-      <br />
-      <br />
-
-      <button onClick={handleLogin}>Entrar</button>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+      </form>
     </div>
   );
 }
